@@ -1,1 +1,102 @@
-apt-get install vim htop nmap
+#!/bin/bash
+# CyberPatriot Script that does glorious things
+# TODO: Add which glorious things it does
+# TODO: Audits (auditd)
+# TODO: Permissions
+
+if [[ "$UID" != '0' ]]; then
+    echo "This script must be run as root!"
+    exit 1
+fi
+
+#############
+# Variables #
+#############
+mapfile -t interactive_users < <(egrep '(/bin/bash|/bin/sh)' /etc/passwd | cut -d: -f1) # Create array called interactive_users and populate it with users that have /bin/bash or /bin/sh as their shell
+
+#################
+# Pre-hardening #
+#################
+cp etc/hosts /etc/hosts
+apt-get install vim htop nmap ufw libpam-cracklib
+rm /bin/nano && cp /usr/bin/vim /bin/nano
+
+###############
+# User Config #
+###############
+read -p "Changing password for all users to 'P@ssw0rd1234!'. Press enter to continue..."
+for user in "${interactive_users[@]}"; do
+    echo "$user:P@ssw0rd1234!" > ~/.passwd
+done
+< ~/.passwd chpasswd
+rm ~/.passwd
+history -c
+
+while true; do
+    egrep '(/bin/bash|/bin/sh)' /etc/passwd | cut -d: -f1
+    read -p "Enter a user to remove or q to quit: " user
+    if [[ "$user" == 'q' ]]; then
+        break
+    fi
+    userdel -r "$user"
+done
+
+for group in sudo adm; do
+    while true; do
+        echo $(grep "$group:" /etc/group)
+        read -p "Enter a user to remove from the "$group" group or q to quit: " user
+        if [[ "$user" == 'q' ]]; then
+            break
+        fi
+        gpasswd -d "$user" "$group"
+    done
+done
+
+read -p "Opening /etc/passwd, /etc/group, and /etc/sudoers for manual inspection. Press enter to continue..."
+vipw
+vigr
+visudo
+
+###############
+# Media Files #
+###############
+find /home/ | egrep -e ".*.(mp3|ogg|flac|wma|aac|m4a|flv|webm|ogv|gif|gifv|avi|wmv|mp4|mpg|3gp)"
+read -p "The above media files have been found. Delete them all (y/n)?: " response
+
+##################
+# Firewall setup #
+##################
+ufw reset
+ufw enable
+ufw reload
+
+##########################
+# OS Configuration Files #
+##########################
+cp etc/login.defs /etc/login.defs
+cp etc/common-auth /etc/pam.d/common-auth
+cp etc/common-password /etc/pam.d/common-password
+
+###############################
+# Service Configuration Files #
+###############################
+if [[ -f /etc/ssh/sshd_config ]]; then
+    cp etc/sshd_config /etc/ssh/sshd_config
+fi
+
+if [[ -f /etc/lightdm/lightdm.conf ]]; then
+    echo 'allow-guest=false' >> /etc/lightdm/lightdm.conf
+fi
+
+if [[ -f /etc/php5/apache2/php.ini ]]; then
+    cp etc/php.ini /etc/php5/apache2/php.ini
+fi
+
+#########################
+# Hacking Tools Removal #
+#########################
+while read -r; do 
+    hacking_tools+=("$REPLY")
+done < <(cat etc/hacking-tools-list.txt)
+read -p "Removing hacking tools, press enter to continue..."
+dpkg --purge "${hacking_tools[@]}" 2> /dev/null
