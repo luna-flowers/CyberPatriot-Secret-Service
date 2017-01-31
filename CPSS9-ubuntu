@@ -102,3 +102,8 @@ while read -r; do
 done < <(cat etc/hacking-tools-list.txt)
 read -p "Removing hacking tools, press enter to continue..."
 dpkg --purge "${hacking_tools[@]}" 2> /dev/null
+
+########################
+# Kernel Configuration #
+########################
+cp etc/sysctl.conf /etc/sysctl.conf
