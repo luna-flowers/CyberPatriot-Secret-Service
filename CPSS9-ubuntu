@@ -28,7 +28,7 @@ rm /bin/nano && cp /usr/bin/vim /bin/nano
 ###############
 read -p "Changing password for all users to 'P@ssw0rd1234!'. Press enter to continue..."
 for user in "${interactive_users[@]}"; do
-    echo "$user:P@ssw0rd1234!" >> ~/.passwd
+    echo "$user:124abc" >> ~/.passwd
 done
 < ~/.passwd chpasswd
 rm ~/.passwd
