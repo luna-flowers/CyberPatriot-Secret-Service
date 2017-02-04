@@ -1,9 +1,6 @@
 #!/bin/bash
 # CyberPatriot Script that does glorious things
-# TODO: Add which glorious things it does
-# TODO: Audits (auditd)
-# TODO: Permissions
-# TODO: Whatever else the modules want
+# Diff comparasion
 
 if [[ "$UID" != '0' ]]; then
     echo "This script must be run as root!"
