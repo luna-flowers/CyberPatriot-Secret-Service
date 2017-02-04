@@ -3,7 +3,6 @@
 # TODO: Add which glorious things it does
 # TODO: Audits (auditd)
 # TODO: Permissions
-# TODO: Kernel Configs
 # TODO: Whatever else the modules want
 
 if [[ "$UID" != '0' ]]; then
@@ -20,7 +19,7 @@ mapfile -t interactive_users < <(egrep '(/bin/bash|/bin/sh)' /etc/passwd | cut -
 # Pre-hardening #
 #################
 cp etc/hosts /etc/hosts
-apt-get install vim htop nmap ufw libpam-cracklib
+apt-get install vim htop nmap ufw libpam-cracklib auditd
 rm /bin/nano && cp /usr/bin/vim /bin/nano
 
 ###############
@@ -102,6 +101,29 @@ while read -r; do
 done < <(cat etc/hacking-tools-list.txt)
 read -p "Removing hacking tools, press enter to continue..."
 dpkg --purge "${hacking_tools[@]}" 2> /dev/null
+
+############
+# Auditing #
+############
+auditctl -e 1
+
+###############
+# Permissions #
+###############
+chmod 755 -R /home
+chown root:root /etc/passwd
+chmod 644 /etc/passwd
+chown root:root /etc/shadow
+chmod 640 /etc/shadow
+chown root:root /etc/group
+chmod 644 /etc/group
+chown root:root /etc/sudoers
+chmod 440 /etc/sudoers
+
+####################
+# Diff Comparasion #
+####################
+
 
 ########################
 # Kernel Configuration #
